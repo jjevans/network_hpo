@@ -106,7 +106,8 @@
 						level: 1,
 						position: node_target.position()
 					});
-					
+					cy.layout(cola).run();
+
 					$('#reset').click(function(event){
 						cy.nodes().each(function(node){ node.style({display: 'element', 'background-color': 'red'})});
 						cy.zoom(1);

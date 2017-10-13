@@ -2,6 +2,8 @@
 		function init_cy(elements){
 			var off_opacity = 0.4;//opacity of nodes not related to clicked
 			
+			var cola = {name: 'cola'};
+
 			var cy = cytoscape({
 				container: document.getElementById('cy'),
 				style: [
@@ -15,17 +17,12 @@
 					{
 						selector: 'edge',
 						style: {
-							'opacity': 0.15,
+							'opacity': 0.4
 						}
 					}
 				],
 				elements: elements,
-				layout: {
-					name: 'cola'
-					//flow: true
-					//nodeDimensionsIncludeLabels: true
-					//nodeSpacing: 50
-				},
+				layout: cola,
 				// initial viewport state:
 				zoom: 1,
 				pan: { x: 0, y: 0 },
@@ -68,7 +65,8 @@
 					var node_info = {//info for panel
 						id: node_id,
 						term: node_target.data('term'),
-						desc: node_target.data('description')					
+						desc: node_target.data('description'),
+						children: new Array()
 					}
 					
 					cy.batch(function(){
@@ -84,7 +82,15 @@
 					
 					node_target
 						.connectedEdges()
-						.each(function(edge){edge.target().style({display: 'element', 'background-color': 'red'})});
+						.each(function(edge){
+							if(edge.target() != node_target){
+								node_info.children.push({
+									term: edge.target().data('term'),
+									description: edge.target().data('description')
+								});
+							}							
+							edge.target().style({display: 'element', 'background-color': 'red'})
+						});
 					
 					cy.edges()
 						.filter(function(edge){return edge.target() == node_target})
@@ -101,7 +107,15 @@
 						position: node_target.position()
 					});
 					
+					$('#reset').click(function(event){
+						cy.nodes().each(function(node){ node.style({display: 'element', 'background-color': 'red'})});
+						cy.zoom(1);
+
+						cy.layout(cola).run();
+					});
+
 					populate_panel(node_info);
+					panel_tree(node_info);
 				})
 				console.log('ready');
 			});			

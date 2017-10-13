@@ -7,7 +7,8 @@
 	<script src="cytoscape-automove.js"></script>
 	<script src="cy_utils.js"></script>
 	<script src="cy_panel.js"></script>
-
+	<link rel="stylesheet" href="css/site.min.css">
+	
 	<script>
 		var pathfile = "graph_path.tbl";
 		var termfile = "hpo_id_name_acc.tbl";
@@ -55,6 +56,7 @@
 		});
 	</script>
 	<style>
+		body{ font-size: 12px; }
 	    #cy{
 	        width: 600px;
 	        height: 800px;
@@ -65,7 +67,7 @@
 			border: 4px solid black;
 	    }
 		#panel{
-			width: 250px;
+			width: 450px;
 			height: 800px;
 			position: absolute;
 			top: 25px;
@@ -73,20 +75,35 @@
 			padding: 10px;
 			border: 4px solid black;
 		}
+		#panel_tbl{
+			font-size: 14px;	
+		}
+		#panel_tree_0{
+			width: 125px;
+		}
+		#panel_tree_1{
+			width: 300px;
+		}
+		#target_node{
+			font-weight: bold;	
+		}
 	</style>
 
 </head>
 <body>
 	<div id="cy"></div>		
 	<div id="panel">
+		<button type='button' id='reset' class='btn btn-primary btn-block'>RESET</button>
+				
 		<table id='panel_tbl'>
 			<thead>
 				<tr><th>HPO</th><th id='head'></th></tr>
 			</thead>
 			<tbody>
 				<tr><td>term:</td><td id='term'></td></tr>
-				<tr><td>parent:</td><td id='parent'></td></tr>
 				<tr><td>description:</td><td id='desc'></td></tr>
+				<tr><td>parent:</td><td id='parent'></td></tr>
+				<tr id='empty_row'><td></td><td></td></tr>
 			</tbody>
 		</table>
 		

@@ -8,21 +8,21 @@
 		var lbl_init = "data("+lbl_fld_bg+")";//id, term, description, label fields for node label
 		var lbl_fld_fg = "description";
 		var dbltap_timelen = 300;//time needed between click to call them doubleclick
-		var nodes_to_fit;
-
+		var fit_padding = 40;
+		var fit_duration = 1000;//length animation (1000 millisec)
+	
 		var cola_layout = {
 			name: 'cola',
 			randomize: false,
 			avoidOverlap: true,
 			nodeDimensionsIncludeLabels: false,
 			handleDisconnected: true,
-			fit: false
-			//fit: true,
+			fit: true,//initially then false after
 			//nodeSpacing: function( node ){ return 2; },
-			/*ready: function(){
-				cy.fit();
-			},
-			stop: function(){
+			ready: function(){
+				cola_layout.fit = false;
+			}
+			/*stop: function(){
 				cy.fit();
 			}*/
 		};
@@ -48,8 +48,8 @@
 					}],
 				elements: elements,
 				layout: cola_layout,
-				zoom: 1,
-				pan: { x: 0, y: 0 },
+				//zoom: 1,
+				//pan: { x: 0, y: 0 },
 
 				minZoom: 1e-50,
 				maxZoom: 1e50,
@@ -67,7 +67,13 @@
 				wheelSensitivity: 1
 			});	
 
-
+/*			cy.animate({
+				fit: {
+					eles: cy.nodes(),
+					padding: fit_padding
+				}},
+				{ duration: fit_duration });
+*/
 
 			cy.ready(function(event){
 				/*cy.on('grab', 'node', function(event) {
@@ -77,7 +83,7 @@
 				});*/
 				var tappedBefore;
 				var tappedTimeout;
-	
+								
 				cy.on('tapstart', 'node', function(event){
 					var node_target = event.target;
 					var node_id = node_target.data('id');
@@ -106,11 +112,12 @@
 
 					$('#reset').click(function(event){
 						cy.$('.'+fg_class).removeClass(fg_class);
-						//cy.nodes().each(function(node){ node.style({display: 'element', 'background-color': node_color})});
-						cy.nodes().each(function(node){ node.style({label: node.data(lbl_fld_bg), opacity: node_fg_opacity, 'background-color': node_color}) });
-						cy.zoom(1);
+						cy.nodes()
+							.each(function(node){
+								node.style({label: node.data(lbl_fld_bg), 'background-opacity': node_fg_opacity, 'background-color': node_color})
+							});
 
-						cy.layout(cola_layout).run();
+						exec_layout();
 					});
 					
 					populate_panel(node_info);
@@ -123,31 +130,46 @@
 			return cy;
 		}
 
+		function exec_layout(class_to_fit=null){
+			//execute layout and animate to fit elements
+			cy.layout(cola_layout).run();
+			
+			var eles_to_animate;
+			if(class_to_fit == null){
+				eles_to_animate = cy.nodes()
+			}
+			else{
+				eles_to_animate = cy.$('.'+class_to_fit);	
+			}
+			
+			cy.animate({
+				fit:{
+					eles: eles_to_animate,
+					padding: fit_padding
+					}
+				},
+				{ duration: fit_duration }
+			);
+			
+			return;
+		}
+		
 		function process_cy(event){
 			var node_target = event.target;
 			var node_info = event.node;
-			////var node_pos_x = new Array();//all node pos for zoom, pan
-			////var node_pos_y = new Array();
-			nodes_to_fit = new Array();
 	
 			cy.batch(function(){
 				cy.nodes()
 				.filter(function(node){return node != node_target})
 				.each(function(d){
-					d.style({label: d.data(lbl_fld_bg), opacity: node_bg_opacity, 'background-color': node_color});
+					d.style({label: d.data(lbl_fld_bg), 'background-opacity': node_bg_opacity, 'background-color': node_color});
 					d.removeClass(fg_class);
-
-					//node.style({display: 'none'});
 				});
 			});
 
-			//node_target.style({label: node.data(lbl_fld_fg), opacity: node_fg_opacity, 'background-color': node_color});
-			node_target.addClass(fg_class);
-			//node_target.style({display: 'element', 'background-color': node_color});
-			////node_pos_x.push(node.target.position('x'));
-			////node_pos_y.push(node.target.position('y'));
-			nodes_to_fit.push(node_target);
-
+			node_target.addClass(fg_class);//clicked node
+			
+			//children of clicked node
 			node_target
 			.connectedEdges()
 				.each(function(edge){
@@ -158,55 +180,29 @@
 					}
 					edge.target().style({'background-color': node_color});
 					edge.target().addClass(fg_class);
-					//edge.target().style({display: 'element', 'background-color': node_color})
-
-					////node_pos_x.push(edge.target().position('x'));
-					////node_pos_y.push(edge.target().position('y'));
-					nodes_to_fit.push(edge.target());
 				});
-					
+				
+			//parent of clicked node	
 			cy.edges()
 				.filter(function(edge){return edge.target() == node_target})
 				.each(function(edge){
 					edge.source().style({'background-color': highlight_color});
-					//edge.source().style({opacity: node_fg_opacity, 'background-color': highlight_color});
-					//edge.source().style({display: 'element', 'background-color': highlight_color});
 					edge.source().addClass(fg_class);
+
 					node_info.parent_term = edge.source().data('term');
 					node_info.parent_desc = edge.source().data('description');
 				});
 	
-			//pan to center of displayed nodes
-			////var node_pos_tmp = node_pos_x.sort();
-			////var leftmost = node_pos_tmp[0];
-			////var rightmost = node_pos_tmp[-1];
-			////var pan_avg_x = Math.abs(rightmost-leftmost);
-			
-			////node_pos_tmp = node_pos_y.sort();
-			////var upper = node_pos_tmp[0];
-			////var lower = node_pos_tmp[-1];
-			////var pan_avg_y = Math.abs(upper-lower);
-			////cy.pan({x: pan_avg_x, y: pan_avg_y});
-			
-			//cy.fit(nodes_to_fit, 0);
-			//cy.pan({x: node_target.position('x'), y: node_target.position('y')});
-//			cy.zoom({
-//				level: 1,
-//				position: node_target.position()
-//			});
-		
-			//change label from hpo term to description
-			//cy.$('.'+fg_class).each(function(node){
-			//	node.style({label: node.data('description')});
-			//});
-			
+			//clicked node, children, parent to style (class = fg_class)			
 			cy.$('.'+fg_class).each(function(d){
-				d.style({label: d.data(lbl_fld_fg), opacity: node_fg_opacity});
+				d.style({label: d.data(lbl_fld_fg), 'background-opacity': node_fg_opacity});
 			});
 			
 			cola_layout.nodeDimensionsIncludeLabels = true;
-			cy.layout(cola_layout).run();
-			cola_layout.nodeDimensionsIncludeLabels = false;//set back			
+			exec_layout(fg_class);
+			cola_layout.nodeDimensionsIncludeLabels = false;//set back
+			
+			return;
 		}
 
 		function subgraph(terms, root, num_gen){
@@ -217,7 +213,6 @@
 		}
 
 		function add_kids(terms, elems, parent, num_gen){
-			console.log('node: '+parent);
 	
 			terms[parent].children.forEach(function(kid){
 				node = {group: 'nodes', data: {id: kid, term: terms[kid].term, label: terms[kid].label, description: terms[kid].description, classes: parent}};
@@ -231,7 +226,6 @@
 					elems = add_kids(terms, elems, kid, num_gen);
 				}
 			});
-			//return {nodes: nodes, edges: edges};
 			
 			return elems;
 		}

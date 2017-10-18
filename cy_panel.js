@@ -31,7 +31,6 @@ function panel_tree(data){
 	rows.push("<tr class='panel_tree' id='target_node'><td>++ " + term + "</td><td>" + desc + "</td></tr>");
 	
 	data.children.forEach(function(kid){
-		console.log(kid);
 		var row = "<tr class='panel_tree kids'><td>----- " + kid.term + "</td><td>" + kid.description + "</td></tr>";
 		rows.push(row);
 	});

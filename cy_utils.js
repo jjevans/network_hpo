@@ -1,6 +1,9 @@
 		var node_color = "red";
 		var highlight_color = "blue";
-		var dbltap_timeout = 300;
+		var node_bg_opacity = 0.4;
+		var node_fg_opacity = 1;
+		var lbl_fld = 'data(id)';//id, description, label fields for node label
+		var dbltap_timelen = 300;
 
 		function init_cy(elements){
 			var off_opacity = 0.4;//opacity of nodes not related to clicked
@@ -26,7 +29,8 @@
 					{
 						selector: 'node',
 						style: {
-							'content': 'data(description)',
+							'content': lbl_fld,
+							//'content': 'data(id)',
 							'background-color': node_color
 						}
 					},
@@ -74,12 +78,13 @@
 				cy.nodes()
 				.filter(function(node){return node != node_target})
 				.each(function(node){
-					//node.style({opacity: off_opacity});
-					node.style({display: 'none'});
+					node.style({opacity: node_bg_opacity, 'background-color': node_color});
+					//node.style({display: 'none'});
 				});
 			});
 					
-			node_target.style({display: 'element', 'background-color': node_color});
+			node_target.style({opacity: node_fg_opacity, 'background-color': node_color});
+			//node_target.style({display: 'element', 'background-color': node_color});
 			////node_pos_x.push(node.target.position('x'));
 			////node_pos_y.push(node.target.position('y'));
 			nodes_to_fit.push(node_target);
@@ -92,7 +97,8 @@
 						term: edge.target().data('term'),
 						description: edge.target().data('description')});
 					}
-					edge.target().style({display: 'element', 'background-color': node_color})
+					edge.target().style({opacity: node_fg_opacity, 'background-color': node_color})
+					//edge.target().style({display: 'element', 'background-color': node_color})
 
 					////node_pos_x.push(edge.target().position('x'));
 					////node_pos_y.push(edge.target().position('y'));
@@ -102,7 +108,8 @@
 			cy.edges()
 				.filter(function(edge){return edge.target() == node_target})
 				.each(function(edge){
-					edge.source().style({display: 'element', 'background-color': highlight_color});
+					edge.source().style({opacity: node_fg_opacity, 'background-color': highlight_color});
+					//edge.source().style({display: 'element', 'background-color': highlight_color});
 		
 					node_info.parent_term = edge.source().data('term');
 					node_info.parent_desc = edge.source().data('description');
@@ -150,7 +157,7 @@
 						children: new Array()
 					}
 				
-					//doubleclick, stackoverflow
+					//ondoubleclick, stackoverflow
 					var tappedNow = event.cyTarget;
 					if(tappedTimeout && tappedBefore){
 					    clearTimeout(tappedTimeout);
@@ -161,7 +168,7 @@
 						tappedBefore = null;
 					}
 					else{
-						tappedTimeout = setTimeout(function(){ tappedBefore = null; }, dbltap_timeout);
+						tappedTimeout = setTimeout(function(){ tappedBefore = null; }, dbltap_timelen);
 						tappedBefore = tappedNow;
 					}
 

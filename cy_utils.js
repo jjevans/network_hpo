@@ -1,30 +1,33 @@
 		var node_color = "red";
 		var highlight_color = "blue";
-		var node_bg_opacity = 0.4;
-		var node_fg_opacity = 1;
+		var edge_opacity = 0.4;//opacity of edges
+		var node_bg_opacity = 0.4;//opacity of nodes not related to clicked
+		var node_fg_opacity = 1;//nodes related to clicked
 		var fg_class = "foreground";
-		var lbl_fld = 'data(term)';//id, term, description, label fields for node label
-		var dbltap_timelen = 300;
+		var lbl_fld_bg = "term";
+		var lbl_init = "data("+lbl_fld_bg+")";//id, term, description, label fields for node label
+		var lbl_fld_fg = "description";
+		var dbltap_timelen = 300;//time needed between click to call them doubleclick
 		var nodes_to_fit;
 
+		var cola_layout = {
+			name: 'cola',
+			randomize: false,
+			avoidOverlap: true,
+			nodeDimensionsIncludeLabels: false,
+			handleDisconnected: true,
+			fit: false
+			//fit: true,
+			//nodeSpacing: function( node ){ return 2; },
+			/*ready: function(){
+				cy.fit();
+			},
+			stop: function(){
+				cy.fit();
+			}*/
+		};
+
 		function init_cy(elements){
-			var off_opacity = 0.4;//opacity of nodes not related to clicked
-			
-			var cola = {
-				name: 'cola',
-				randomize: false,
-				avoidOverlap: true,
-				//nodeDimensionsIncludeLabels: true,
-				handleDisconnected: true
-				//fit: true,
-				//nodeSpacing: function( node ){ return 2; },
-				/*ready: function(){
-					cy.fit();
-				},
-				stop: function(){
-					cy.fit();
-				}*/
-			};
 
 			var cy = cytoscape({
 				container: document.getElementById('cy'),
@@ -32,7 +35,7 @@
 					{
 						selector: 'node',
 						style: {
-							'content': lbl_fld,
+							'content': lbl_init,
 							//'content': 'data(id)',
 							'background-color': node_color
 						}
@@ -40,11 +43,11 @@
 					{
 						selector: 'edge',
 						style: {
-							'opacity': 0.4
+							'opacity': edge_opacity
 						}
 					}],
 				elements: elements,
-				layout: cola,
+				layout: cola_layout,
 				zoom: 1,
 				pan: { x: 0, y: 0 },
 
@@ -104,10 +107,10 @@
 					$('#reset').click(function(event){
 						cy.$('.'+fg_class).removeClass(fg_class);
 						//cy.nodes().each(function(node){ node.style({display: 'element', 'background-color': node_color})});
-						cy.nodes().each(function(node){ node.style({opacity: node_fg_opacity, 'background-color': node_color}) });
+						cy.nodes().each(function(node){ node.style({label: node.data(lbl_fld_bg), opacity: node_fg_opacity, 'background-color': node_color}) });
 						cy.zoom(1);
 
-						cy.layout(cola).run();
+						cy.layout(cola_layout).run();
 					});
 					
 					populate_panel(node_info);
@@ -130,15 +133,15 @@
 			cy.batch(function(){
 				cy.nodes()
 				.filter(function(node){return node != node_target})
-				.each(function(node){
-					node.style({opacity: node_bg_opacity, 'background-color': node_color});
-					node.removeClass(fg_class);
+				.each(function(d){
+					d.style({label: d.data(lbl_fld_bg), opacity: node_bg_opacity, 'background-color': node_color});
+					d.removeClass(fg_class);
 
 					//node.style({display: 'none'});
 				});
 			});
 
-			node_target.style({opacity: node_fg_opacity, 'background-color': node_color});
+			//node_target.style({label: node.data(lbl_fld_fg), opacity: node_fg_opacity, 'background-color': node_color});
 			node_target.addClass(fg_class);
 			//node_target.style({display: 'element', 'background-color': node_color});
 			////node_pos_x.push(node.target.position('x'));
@@ -153,7 +156,7 @@
 						term: edge.target().data('term'),
 						description: edge.target().data('description')});
 					}
-					edge.target().style({opacity: node_fg_opacity, 'background-color': node_color});
+					edge.target().style({'background-color': node_color});
 					edge.target().addClass(fg_class);
 					//edge.target().style({display: 'element', 'background-color': node_color})
 
@@ -165,7 +168,8 @@
 			cy.edges()
 				.filter(function(edge){return edge.target() == node_target})
 				.each(function(edge){
-					edge.source().style({opacity: node_fg_opacity, 'background-color': highlight_color});
+					edge.source().style({'background-color': highlight_color});
+					//edge.source().style({opacity: node_fg_opacity, 'background-color': highlight_color});
 					//edge.source().style({display: 'element', 'background-color': highlight_color});
 					edge.source().addClass(fg_class);
 					node_info.parent_term = edge.source().data('term');
@@ -184,14 +188,25 @@
 			////var pan_avg_y = Math.abs(upper-lower);
 			////cy.pan({x: pan_avg_x, y: pan_avg_y});
 			
-			cy.fit(nodes_to_fit, 0);
+			//cy.fit(nodes_to_fit, 0);
 			//cy.pan({x: node_target.position('x'), y: node_target.position('y')});
 //			cy.zoom({
 //				level: 1,
 //				position: node_target.position()
 //			});
 		
-//			cy.layout(cola).run();	
+			//change label from hpo term to description
+			//cy.$('.'+fg_class).each(function(node){
+			//	node.style({label: node.data('description')});
+			//});
+			
+			cy.$('.'+fg_class).each(function(d){
+				d.style({label: d.data(lbl_fld_fg), opacity: node_fg_opacity});
+			});
+			
+			cola_layout.nodeDimensionsIncludeLabels = true;
+			cy.layout(cola_layout).run();
+			cola_layout.nodeDimensionsIncludeLabels = false;//set back			
 		}
 
 		function subgraph(terms, root, num_gen){

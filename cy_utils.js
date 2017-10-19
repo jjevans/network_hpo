@@ -142,6 +142,7 @@
 				eles_to_animate = cy.$('.'+class_to_fit);	
 			}
 			
+			cy.clearQueue();
 			cy.animate({
 				fit:{
 					eles: eles_to_animate,

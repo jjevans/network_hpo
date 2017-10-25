@@ -24,7 +24,7 @@ function panel_tree(data){
 	
 	if(typeof parent_term === 'undefined'){//no parent (root node)
 		parent_term = 'root';
-		parent_desc = '';
+		parent_desc = parent_desc;
 	}
 	rows.push("<tr class='panel_tree'><td class='panel_tree_0'>- " + parent_term + "</td><td class='panel_tree_1'>" + parent_desc + "</td></tr>");
 	
@@ -39,3 +39,6 @@ function panel_tree(data){
 	
 	return;
 }
+
+function td(content){ return "<td>" + content + "</td>" }
+function tr(content){ return "<tr>" + content + "</td>" }

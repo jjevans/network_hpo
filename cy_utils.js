@@ -17,16 +17,11 @@
 			avoidOverlap: true,
 			nodeDimensionsIncludeLabels: false,
 			handleDisconnected: true,
-			fit: true,//initially then false after
-			//nodeSpacing: function( node ){ return 2; },
-			ready: function(){
-				cola_layout.fit = false;
-			}
-			/*stop: function(){
-				cy.fit();
-			}*/
+			maxSimulationTime: 30000,
+			refresh: 2,
+			fit: false,
+			flow: true
 		};
-
 		function init_cy(elements){
 
 			var cy = cytoscape({
@@ -37,7 +32,10 @@
 						style: {
 							'content': lbl_init,
 							//'content': 'data(id)',
-							'background-color': node_color
+							'background-color': node_color,
+							'width': '5px',
+							'height': '5px',
+							'shape': 'octagon'
 						}
 					},
 					{
@@ -48,23 +46,22 @@
 					}],
 				elements: elements,
 				layout: cola_layout,
-				//zoom: 1,
-				//pan: { x: 0, y: 0 },
-
+				zoom: 1,
+				pan: { x: 0, y: 0 },
 				minZoom: 1e-50,
 				maxZoom: 1e50,
 				zoomingEnabled: true,
 				userZoomingEnabled: true,
 				panningEnabled: true,
 				userPanningEnabled: true,
-				boxSelectionEnabled: false,
+				boxSelectionEnabled: true,
 				selectionType: 'single',
 				touchTapThreshold: 8,
 				desktopTapThreshold: 4,
 				autolock: false,
 				autoungrabify: false,
 				autounselectify: false,
-				wheelSensitivity: 1
+				wheelSensitivity: 0.15
 			});	
 
 /*			cy.animate({
@@ -206,18 +203,22 @@
 			return;
 		}
 
-		function subgraph(terms, root, num_gen){
+		function subgraph(terms, root, num_gen, hide=false){
 			var elems = [{group: 'nodes', data: {id: root, label: terms[root].label, term: terms[root].term}}];
 			
 			terms.lastparent = root;
 			return add_kids(terms, elems, root, num_gen);
 		}
 
-		function add_kids(terms, elems, parent, num_gen){
+		function add_kids(terms, elems, parent, num_gen, hide=false){
 	
 			terms[parent].children.forEach(function(kid){
 				node = {group: 'nodes', data: {id: kid, term: terms[kid].term, label: terms[kid].label, description: terms[kid].description, classes: parent}};
 				edge = {group: 'edges', data: {source: parent, target: kid}};
+				
+				if(hide){ node.style = {display: 'none'}; edge.style = {display: 'none'} }
+				//if(hide){ node.style = {visibility: hidden}; edge.style = {visibility: hidden} }
+
 				elems.push(node, edge);
 	
 				if(typeof num_gen === 'undefined' || (typeof num_gen === 'number' && num_gen > 0)){

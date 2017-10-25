@@ -4,16 +4,21 @@
 	<script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script>
 	<script src="cola.min.js"></script>
 	<script src="cytoscape-cola.js"></script>
-	<script src="cytoscape-automove.js"></script>
+	<script src="cytoscape-navigator.js"></script>
+	<script src="cytoscape-dagre.js"></script>
 	<script src="cy_utils.js"></script>
+	<script src="cy_navigator.js"></script>
 	<script src="cy_panel.js"></script>
 	<link rel="stylesheet" href="css/bootflat.min.css">
+	<link rel="stylesheet" href="graph.css">
 	
 	<script>
 		var pathfile = "graph_path.tbl";
 		var termfile = "hpo_id_name_acc.tbl";
-		var treedepth = 7;
-		var rootnode = 100547;//top==1
+		var treedepth = 3;
+		//var rootnode = 100547;//top==1
+		var rootnode = 40068;//top==1
+		var dohide = true;
 		
 		var terms = new Object();
 		var elems;
@@ -42,12 +47,19 @@
 						});
 						console.log('complete: path')
 				
-						elems = subgraph(terms, rootnode, treedepth);
+						elems = subgraph(terms, rootnode, treedepth, dohide);
 		
 						cy = init_cy(elems);
-						
-						console.log('complete: graph')
+						var nav = navigator();
 
+						console.log('complete: graph');
+						
+						/*console.log('before: '+cy.elements().length.toString());
+						all_elems = cy.collection(subgraph(terms, 1, undefined));
+						cy.elements().add(all_elems);
+						
+						console.log('complete: populate all elements');
+						console.log('after: '+cy.elements().length.toString());*/
 					},
 					dataType: "text"
 				});
@@ -55,39 +67,6 @@
 			dataType: "text"
 		});
 	</script>
-	<style>
-		body{ font-size: 12px; }
-	    #cy{
-	        width: 600px;
-	        height: 800px;
-	        position: absolute;
-	        top: 25px;
-	        left: 25px;
-			padding: 10px;
-			border: 4px solid black;
-	    }
-		#panel{
-			width: 450px;
-			height: 800px;
-			position: absolute;
-			top: 25px;
-			left: 655px;
-			padding: 10px;
-			border: 4px solid black;
-		}
-		#panel_tbl{
-			font-size: 14px;	
-		}
-		#panel_tree_0{
-			width: 125px;
-		}
-		#panel_tree_1{
-			width: 300px;
-		}
-		#target_node{
-			font-weight: bold;	
-		}
-	</style>
 
 </head>
 <body>
@@ -108,5 +87,6 @@
 		</table>
 		
 	</div>
+<script>$('#panel').hide();</script>
 </body>
 </html>
